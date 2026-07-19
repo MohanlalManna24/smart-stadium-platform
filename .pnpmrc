@@ -1,0 +1,3 @@
+node-linker=hoisted
+dedupe-peer-dependents=true
+shell-emulator=false
