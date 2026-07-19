@@ -59,10 +59,6 @@ Rules:
     return Response.json(output)
   } catch (error) {
     // Live model unavailable — return a deterministic, snapshot-grounded briefing.
-    console.log(
-      "[v0] ops-briefing model unavailable, using grounded fallback:",
-      error instanceof Error ? error.message : String(error),
-    )
     return Response.json(buildFallbackBriefing(snapshot))
   }
 }
