@@ -7,7 +7,7 @@ import type { LiveMetrics } from "@/lib/use-live-data"
 
 function pressureMeta(p: number) {
   if (p >= 70) return { label: "Severe", color: "text-destructive", bar: "bg-destructive" }
-  if (p >= 45) return { label: "High", color: "text-accent-foreground", bar: "bg-accent" }
+  if (p >= 45) return { label: "High", color: "text-accent", bar: "bg-accent" }
   if (p >= 22) return { label: "Elevated", color: "text-chart-3", bar: "bg-chart-3" }
   return { label: "Nominal", color: "text-chart-1", bar: "bg-chart-1" }
 }
@@ -27,7 +27,7 @@ function Metric({
 }) {
   const toneClass = {
     default: "text-foreground",
-    warn: "text-accent-foreground",
+    warn: "text-accent",
     bad: "text-destructive",
     good: "text-chart-1",
   }[tone]

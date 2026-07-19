@@ -1,11 +1,13 @@
 import {
   convertToModelMessages,
+  createUIMessageStream,
   createUIMessageStreamResponse,
+  generateId,
   streamText,
-  toUIMessageStream,
   type UIMessage,
 } from "ai"
 import type { VenueSnapshot } from "@/lib/types"
+import { buildFallbackAnswer } from "@/lib/ai-fallback"
 
 export const maxDuration = 30
 
@@ -21,6 +23,15 @@ interface ChatBody {
 function snapshotText(snapshot?: VenueSnapshot): string {
   if (!snapshot) return "No live venue data is currently available."
   return JSON.stringify(snapshot, null, 2)
+}
+
+function lastUserText(messages: UIMessage[]): string {
+  const last = [...messages].reverse().find((m) => m.role === "user")
+  if (!last) return ""
+  return last.parts
+    .filter((p): p is { type: "text"; text: string } => p.type === "text")
+    .map((p) => p.text)
+    .join(" ")
 }
 
 function systemPrompt(body: ChatBody): string {
@@ -50,9 +61,10 @@ officers, transport marshals). Your job is real-time decision support.
 - When you recommend moving fans, name a specific less-busy alternative gate/zone from the data.`
   }
 
-  const language = body.language && body.language !== "English"
-    ? `\n\nIMPORTANT: The fan's preferred language is ${body.language}. Respond entirely in ${body.language}.`
-    : ""
+  const language =
+    body.language && body.language !== "English"
+      ? `\n\nIMPORTANT: The fan's preferred language is ${body.language}. Respond entirely in ${body.language}.`
+      : ""
 
   return `${shared}
 
@@ -66,22 +78,65 @@ ROLE: You are the Fan Concierge, a warm and helpful multilingual guide for suppo
 - Be encouraging and celebratory about the tournament, but keep answers practical.${language}`
 }
 
+/** Split text into small groups of words so the fallback still "streams" nicely. */
+function chunk(text: string): string[] {
+  const words = text.split(/(\s+)/)
+  const out: string[] = []
+  for (let i = 0; i < words.length; i += 4) {
+    out.push(words.slice(i, i + 4).join(""))
+  }
+  return out
+}
+
 export async function POST(req: Request) {
   const body = (await req.json()) as ChatBody
+  const mode = body.mode ?? "fan"
 
-  const result = streamText({
-    model: MODEL,
-    system: systemPrompt(body),
-    messages: await convertToModelMessages(body.messages),
+  const stream = createUIMessageStream({
+    execute: async ({ writer }) => {
+      const id = generateId()
+      let started = false
+
+      try {
+        const result = streamText({
+          model: MODEL,
+          system: systemPrompt(body),
+          messages: await convertToModelMessages(body.messages),
+        })
+
+        for await (const delta of result.textStream) {
+          if (!started) {
+            writer.write({ type: "text-start", id })
+            started = true
+          }
+          writer.write({ type: "text-delta", id, delta })
+        }
+
+        if (!started) throw new Error("Empty model response")
+        writer.write({ type: "text-end", id })
+      } catch (error) {
+        // The live model is unavailable (e.g. gateway/billing). Degrade gracefully
+        // to a deterministic, snapshot-grounded answer so the assistant still works.
+        console.log(
+          "[v0] chat model unavailable, using grounded fallback:",
+          error instanceof Error ? error.message : String(error),
+        )
+
+        if (!started) {
+          const answer = buildFallbackAnswer(lastUserText(body.messages), mode, body.snapshot)
+          const fallbackId = generateId()
+          writer.write({ type: "text-start", id: fallbackId })
+          for (const piece of chunk(answer)) {
+            writer.write({ type: "text-delta", id: fallbackId, delta: piece })
+            await new Promise((r) => setTimeout(r, 18))
+          }
+          writer.write({ type: "text-end", id: fallbackId })
+        } else {
+          writer.write({ type: "text-end", id })
+        }
+      }
+    },
   })
 
-  return createUIMessageStreamResponse({
-    stream: toUIMessageStream({
-      stream: result.stream,
-      onError: (error) => {
-        console.log("[v0] chat stream error:", error instanceof Error ? error.message : String(error))
-        return "Something went wrong reaching the assistant."
-      },
-    }),
-  })
+  return createUIMessageStreamResponse({ stream })
 }

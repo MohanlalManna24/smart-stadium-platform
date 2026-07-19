@@ -7,6 +7,14 @@ import { ZONE_STATUS_META, ZONE_TYPE_LABEL } from "@/lib/format"
 import { zoneStatus } from "@/lib/stadium-data"
 import type { Trend, Zone } from "@/lib/types"
 
+// Bright, control-room-legible text colours for the occupancy figure (dark theme).
+const NUM_TEXT = {
+  clear: "text-chart-1",
+  moderate: "text-chart-3",
+  busy: "text-accent",
+  critical: "text-destructive",
+} as const
+
 function TrendIcon({ trend }: { trend: Trend }) {
   if (trend === "rising") return <ArrowUpRight className="size-3.5 text-destructive" />
   if (trend === "falling") return <ArrowDownRight className="size-3.5 text-chart-1" />
@@ -46,7 +54,7 @@ export function ZoneHeatmap({ zones }: { zones: Zone[] }) {
                   )}
                 </div>
                 <div className="flex items-end justify-between gap-1">
-                  <span className={cn("font-mono text-lg font-semibold tabular-nums", meta.text)}>
+                  <span className={cn("font-mono text-lg font-semibold tabular-nums", NUM_TEXT[status])}>
                     {Math.round(zone.occupancyPct)}%
                   </span>
                   <span className="flex items-center gap-0.5 text-[11px] text-muted-foreground">

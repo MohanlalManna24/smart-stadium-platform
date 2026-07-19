@@ -22,7 +22,7 @@ export const TRANSPORT_STATUS_META: Record<
 > = {
   good: { label: "Good", dot: "bg-chart-1", text: "text-chart-1" },
   moderate: { label: "Moderate", dot: "bg-chart-3", text: "text-chart-3" },
-  delayed: { label: "Delayed", dot: "bg-accent", text: "text-accent-foreground" },
+  delayed: { label: "Delayed", dot: "bg-accent", text: "text-accent" },
   disrupted: { label: "Disrupted", dot: "bg-destructive", text: "text-destructive" },
 }
 
@@ -31,7 +31,7 @@ export const SEVERITY_META: Record<
   { label: string; text: string; bg: string }
 > = {
   low: { label: "Low", text: "text-chart-3", bg: "bg-chart-3/10" },
-  medium: { label: "Medium", text: "text-accent-foreground", bg: "bg-accent/15" },
+  medium: { label: "Medium", text: "text-accent", bg: "bg-accent/15" },
   high: { label: "High", text: "text-destructive", bg: "bg-destructive/10" },
 }
 
@@ -70,7 +70,7 @@ export const LANGUAGES = [
   "Français",
   "Português",
   "Deutsch",
-  "العربية",
+  "العربية (Arabic)",
   "日本語",
   "한국어",
 ] as const

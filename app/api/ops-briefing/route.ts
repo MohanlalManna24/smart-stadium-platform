@@ -1,6 +1,7 @@
 import { generateText, Output } from "ai"
 import { z } from "zod"
 import type { VenueSnapshot } from "@/lib/types"
+import { buildFallbackBriefing } from "@/lib/ai-fallback"
 
 export const maxDuration = 30
 
@@ -34,7 +35,8 @@ const briefingSchema = z.object({
 export async function POST(req: Request) {
   const { snapshot } = (await req.json()) as { snapshot: VenueSnapshot }
 
-  const { output } = await generateText({
+  try {
+    const { output } = await generateText({
     model: MODEL,
     output: Output.object({ schema: briefingSchema }),
     system: `You are the operations intelligence engine for "PitchOps", a smart-stadium platform
@@ -52,7 +54,15 @@ Rules:
   sustainability.
 - Set overallRisk to reflect the worst credible near-term outcome, not the average.`,
     prompt: `Here is the current venue snapshot:\n\n${JSON.stringify(snapshot, null, 2)}\n\nProduce the operational briefing.`,
-  })
+    })
 
-  return Response.json(output)
+    return Response.json(output)
+  } catch (error) {
+    // Live model unavailable — return a deterministic, snapshot-grounded briefing.
+    console.log(
+      "[v0] ops-briefing model unavailable, using grounded fallback:",
+      error instanceof Error ? error.message : String(error),
+    )
+    return Response.json(buildFallbackBriefing(snapshot))
+  }
 }
