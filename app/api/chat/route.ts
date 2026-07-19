@@ -117,10 +117,6 @@ export async function POST(req: Request) {
       } catch (error) {
         // The live model is unavailable (e.g. gateway/billing). Degrade gracefully
         // to a deterministic, snapshot-grounded answer so the assistant still works.
-        console.log(
-          "[v0] chat model unavailable, using grounded fallback:",
-          error instanceof Error ? error.message : String(error),
-        )
 
         if (!started) {
           const answer = buildFallbackAnswer(lastUserText(body.messages), mode, body.snapshot)

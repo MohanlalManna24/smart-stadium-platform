@@ -96,6 +96,7 @@ export function AssistantChat({
                     key={s}
                     type="button"
                     onClick={() => submit(s)}
+                    aria-label={`Send message: ${s}`}
                     className="rounded-full border bg-background px-3 py-1.5 text-xs text-foreground transition-colors hover:bg-muted"
                   >
                     {s}

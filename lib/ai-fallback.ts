@@ -54,7 +54,6 @@ export function buildFallbackAnswer(
   const restrooms = byType(snapshot, "restroom")
   const concessions = byType(snapshot, "concession")
   const medical = byType(snapshot, "medical")
-  const transit = byType(snapshot, "transit")
 
   const has = (...words: string[]) => words.some((w) => q.includes(w))
 

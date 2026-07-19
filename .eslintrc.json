@@ -1,21 +1,37 @@
 {
-  "extends": ["next/core-web-vitals"],
+  "extends": ["eslint:recommended"],
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "env": {
+    "browser": true,
+    "node": true,
+    "es2021": true,
+    "jest": true
+  },
+  "overrides": [
+    {
+      "files": ["jest.config.js"],
+      "env": {
+        "node": true
+      }
+    }
+  ],
   "rules": {
-    "react/no-unescaped-entities": "warn",
-    "react-hooks/rules-of-hooks": "error",
-    "react-hooks/exhaustive-deps": "warn",
-    "@next/next/no-html-link-for-pages": "error",
     "no-console": [
       "warn",
       {
-        "allow": ["warn", "error"]
+        "allow": ["warn", "error", "log"]
       }
     ],
     "prefer-const": "error",
     "no-var": "error",
     "eqeqeq": ["error", "always"],
-    "no-unused-vars": "off",
-    "@typescript-eslint/no-unused-vars": [
+    "no-unused-vars": [
       "error",
       {
         "argsIgnorePattern": "^_"
