@@ -76,6 +76,12 @@ export async function POST(req: Request) {
   })
 
   return createUIMessageStreamResponse({
-    stream: toUIMessageStream({ stream: result.stream }),
+    stream: toUIMessageStream({
+      stream: result.stream,
+      onError: (error) => {
+        console.log("[v0] chat stream error:", error instanceof Error ? error.message : String(error))
+        return "Something went wrong reaching the assistant."
+      },
+    }),
   })
 }

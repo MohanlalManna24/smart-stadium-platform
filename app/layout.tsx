@@ -36,7 +36,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${manrope.variable} ${geistMono.variable} bg-background`}>
       <body className="font-sans antialiased">
-        <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
+        <TooltipProvider>{children}</TooltipProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
